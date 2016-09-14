@@ -1,7 +1,8 @@
 clear all
+close all
 
 % Load the data in
-data_file = 'semeion.data';
+data_file = 'threeclouds.data';
 % data_file = 'wine.data';
 load(data_file);
 
@@ -22,7 +23,6 @@ input = data(:, 2:size(data,2));
 
 % Clean the input
 for col = 1:size(input,2)
-    
      input(:,col) = (input(:,col) - mean(input(:,col),1)) ./ std(input(:,col),0,1);
 end
 
@@ -54,7 +54,7 @@ testExpectedOutput = expectedOutput(floor(numExamples*c(2))+1:numExamples, :);
 
 % If 2d or 3d then plot the points with a scatter
 if numDimensions == 2
-    scatter(input(:,1)', input(:,2)', 15, labels', 'filled');
+    scatter(input(:,1)', input(:,2)', 15, expectedOutput, 'filled');
 elseif numDimensions == 3
     scatter3d(input(:,1)', input(:,2)', input(:,3), 15, labels', 'filled');
 end
@@ -117,3 +117,31 @@ p = predict(actFunc, testData, W, b);
 numCorrect = numel(find(p == testLabels));
 s = sprintf('\nTest accuracy: %.2f%%\n', (numCorrect/size(testLabels,1))*100);
 disp(s);
+
+
+
+% If three clouds then we can plot the data and show which points were
+% correctly classified and which weren't
+if strcmp(data_file, 'threeclouds.data')
+    % Run all of the data through the network
+    p = predict(actFunc, input, W, b);
+    Correct = find(p == labels);
+    Incorrect = find(p ~= labels);
+    
+    a = zeros(size(p));
+    for i = 1:size(a, 1)
+        a(i, p(i)) = 1;
+    end
+    
+    
+    
+    scatter(input(Correct,1)', input(Correct,2)', 15, a(Correct,:), 'filled'); hold on;
+    
+    for i = 1:size(Incorrect,1)
+        scatter(input(Incorrect(i),1)', input(Incorrect(i),2)', 25, 'MarkerEdgeColor', a(Incorrect(i),:), 'MarkerFaceColor', expectedOutput(Incorrect(i),:), 'LineWidth', 1);
+    end
+%     scatter(input(Incorrect,1)', input(Incorrect,2)', 25, 'MarkerEdgeColor', expectedOutput(Incorrect,:));
+%     scatter(input(Incorrect,1), input(Incorrect,2), 25, 'MarkerEdgeColor', 'red', 'MarkerFaceColor', expectedOutput(Incorrect,:));
+end
+
+
