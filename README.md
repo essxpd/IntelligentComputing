@@ -1,2 +1,2 @@
 # IntelligentComputing
-Course work for CS4770
+Coursework for CS4770
