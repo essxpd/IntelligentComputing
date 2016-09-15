@@ -12,6 +12,8 @@ elseif strcmp(data_file, 'wine.data')
     data = wine;
 elseif strcmp(data_file, 'semeion.data')
     data = semeion; 
+elseif strcmp(data_file, 'circle.data')
+    data = circle; 
 end
 
 % Shuffle the data
@@ -54,6 +56,7 @@ testExpectedOutput = expectedOutput(floor(numExamples*c(2))+1:numExamples, :);
 
 % If 2d or 3d then plot the points with a scatter
 if numDimensions == 2
+    figure;
     scatter(input(:,1)', input(:,2)', 15, expectedOutput, 'filled');
 elseif numDimensions == 3
     scatter3d(input(:,1)', input(:,2)', input(:,3), 15, labels', 'filled');
@@ -65,7 +68,7 @@ maxEpoch = 10;
 actFunc = @sigmoid;
 actFuncGrad = @sigmoid_grad;
 
-layerSizes = [14, numClasses]; % Output layer is one hot 
+layerSizes = [2, numClasses]; % Output layer is one hot 
 numHiddenLayers = size(layerSizes, 2) - 1;
 outputLayer = size(layerSizes, 2);
 
@@ -115,10 +118,13 @@ end
 
 p = predict(actFunc, testData, W, b);
 numCorrect = numel(find(p == testLabels));
-s = sprintf('\nTest accuracy: %.2f%%\n', (numCorrect/size(testLabels,1))*100);
+s = sprintf('\nTest accuracy: %.2f%%', (numCorrect/size(testLabels,1))*100);
 disp(s);
 
-
+p = predict(actFunc, input, W, b);
+numCorrect = numel(find(p == labels));
+s = sprintf('Overall accuracy: %.2f%%\n', (numCorrect/size(labels,1))*100);
+disp(s);
 
 % If three clouds then we can plot the data and show which points were
 % correctly classified and which weren't
@@ -128,20 +134,27 @@ if strcmp(data_file, 'threeclouds.data')
     Correct = find(p == labels);
     Incorrect = find(p ~= labels);
     
-    a = zeros(size(p));
+    a = zeros(size(p,1), numClasses);
     for i = 1:size(a, 1)
         a(i, p(i)) = 1;
     end
     
-    
-    
     scatter(input(Correct,1)', input(Correct,2)', 15, a(Correct,:), 'filled'); hold on;
-    
     for i = 1:size(Incorrect,1)
         scatter(input(Incorrect(i),1)', input(Incorrect(i),2)', 25, 'MarkerEdgeColor', a(Incorrect(i),:), 'MarkerFaceColor', expectedOutput(Incorrect(i),:), 'LineWidth', 1);
     end
-%     scatter(input(Incorrect,1)', input(Incorrect,2)', 25, 'MarkerEdgeColor', expectedOutput(Incorrect,:));
-%     scatter(input(Incorrect,1), input(Incorrect,2), 25, 'MarkerEdgeColor', 'red', 'MarkerFaceColor', expectedOutput(Incorrect,:));
+    
+    % New plot using meshgird 
+    [X, Y] = meshgrid(-2.5:.01:2.5, -2.5:.01:2);
+    points = [X(:) Y(:)];
+    p = predict(actFunc, points, W, b);
+    
+    a = zeros(size(p,1), numClasses);
+    for i = 1:size(p,1)
+        a(i, p(i)) = 1;
+    end
+    figure;
+    scatter(points(:,1)', points(:,2)', 15, a(:,:), 'filled');
 end
 
 
