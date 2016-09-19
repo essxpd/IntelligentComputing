@@ -2,7 +2,7 @@ clear all
 close all
 
 % Load the data in
-data_file = 'threeclouds.data';
+data_file = 'wine.data';
 % data_file = 'wine.data';
 load(data_file);
 
@@ -12,8 +12,13 @@ elseif strcmp(data_file, 'wine.data')
     data = wine;
 elseif strcmp(data_file, 'semeion.data')
     data = semeion; 
-elseif strcmp(data_file, 'circle.data')
-    data = circle; 
+    
+    tmp = semeion(:,257:end);
+    for i = 1:size(tmp,1)
+        [~, labels(i)] = max(tmp(i, :));
+    end
+    
+    data = [labels' data(:,1:256)];
 end
 
 % Shuffle the data
@@ -23,7 +28,7 @@ data = data(randperm(size(data,1)),:);
 labels = data(:,1);
 input = data(:, 2:size(data,2));
 
-% Clean the input
+% Clean the input (Normalize)
 for col = 1:size(input,2)
      input(:,col) = (input(:,col) - mean(input(:,col),1)) ./ std(input(:,col),0,1);
 end
@@ -41,7 +46,7 @@ end
 
 % Divide into Training, Validation, and Test sets
 ssizes = [.8, .1, .1];  % Set sizes
-c = cumsum(ssizes);     % Cummulative sume
+c = cumsum(ssizes);     % Cummulative sum
 trainingData = input(1:floor(numExamples*c(1)), :);
 trainingLabels = labels(1:floor(numExamples*c(1)), :);
 trainingExpectedOutput = expectedOutput(1:floor(numExamples*c(1)), :);
@@ -67,8 +72,8 @@ eta = .1;
 maxEpoch = 10;
 actFunc = @sigmoid;
 actFuncGrad = @sigmoid_grad;
+layerSizes = [64, numClasses]; % Output layer is one hot 
 
-layerSizes = [2, numClasses]; % Output layer is one hot 
 numHiddenLayers = size(layerSizes, 2) - 1;
 outputLayer = size(layerSizes, 2);
 
@@ -76,12 +81,6 @@ outputLayer = size(layerSizes, 2);
 % rng(0);
 [W, b] = initNetwork(layerSizes, numDimensions);
 
-% Train the network
-% for k = 1:1
-%     in = input(:,k);
-%     
-%     activations = forwardPass(actFunc, in, W, b);
-% end
 
 % activations = forwardPass(actFunc, input(1,:), W, b);
 % W{1}(1, 1) = .1;
@@ -95,10 +94,11 @@ outputLayer = size(layerSizes, 2);
 
 % test = forwardPass(actFunc, input(2,:), W, b);
 
+% Train the network
 s = sprintf('\nEpoch\t|\tValidation accuracy\n---------------------------------');
 disp(s);
 
-for e = 1:10
+for e = 1:100
     for k = 1:size(trainingData,1)
         [delta_W, delta_b] = backPropagation(actFunc, actFuncGrad, W, b, trainingData(k,:), trainingExpectedOutput(k,:));
 
