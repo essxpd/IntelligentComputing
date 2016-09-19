@@ -1,10 +1,14 @@
 clear all
 close all
 
+
 % Load the data in
-data_file = 'wine.data';
+data_file = 'mnist';
 % data_file = 'wine.data';
-load(data_file);
+
+if ~strcmp(data_file, 'mnist')
+    load(data_file);
+end
 
 if strcmp(data_file, 'threeclouds.data')
     data = threeclouds;
@@ -19,6 +23,12 @@ elseif strcmp(data_file, 'semeion.data')
     end
     
     data = [labels' data(:,1:256)];
+elseif strcmp(data_file, 'mnist')
+    imageName = 'mnist/t10k-images-idx3-ubyte';
+    data = loadMNISTImages(imageName);
+    labelName = 'mnist/t10k-labels-idx1-ubyte';
+    labels = loadMNISTLabels(labelName) + 1;
+    data = [labels data'];
 end
 
 % Shuffle the data
@@ -30,7 +40,7 @@ input = data(:, 2:size(data,2));
 
 % Clean the input (Normalize)
 for col = 1:size(input,2)
-     input(:,col) = (input(:,col) - mean(input(:,col),1)) ./ std(input(:,col),0,1);
+     input(:,col) = (input(:,col) - mean(input(:,col),1)) ./ (.000001+std(input(:,col),0,1));
 end
 
 % Determine dimensionality, number of classes, and number of examples
@@ -72,7 +82,7 @@ eta = .1;
 maxEpoch = 10;
 actFunc = @sigmoid;
 actFuncGrad = @sigmoid_grad;
-layerSizes = [64, numClasses]; % Output layer is one hot 
+layerSizes = [14*14, numClasses]; % Output layer is one hot 
 
 numHiddenLayers = size(layerSizes, 2) - 1;
 outputLayer = size(layerSizes, 2);
@@ -98,7 +108,7 @@ outputLayer = size(layerSizes, 2);
 s = sprintf('\nEpoch\t|\tValidation accuracy\n---------------------------------');
 disp(s);
 
-for e = 1:100
+for e = 1:20
     for k = 1:size(trainingData,1)
         [delta_W, delta_b] = backPropagation(actFunc, actFuncGrad, W, b, trainingData(k,:), trainingExpectedOutput(k,:));
 
@@ -157,4 +167,33 @@ if strcmp(data_file, 'threeclouds.data')
     scatter(points(:,1)', points(:,2)', 15, a(:,:), 'filled');
 end
 
+if strcmp(data_file, 'semeion.data')
+%     incorrect_loc = find(p ~= labels);
+%     incorrect = input(incorrect_loc, :);
+%     
+%     for i = 1:size(incorrect,1)
+%         incorrect_image = reshape(incorrect(i,:), 16, 16);
+%         name = sprintf('Class: %i   Prediction: %i', labels(incorrect_loc(i))-1, p(incorrect_loc(i))-1);
+%         figure('Name', name);
+%         imshow(incorrect_image');
+%     end
 
+%     % Visualize learned weights
+%     if layerSizes(1) == 64 && size(layerSizes, 2) == 2
+%         for i = 1:layerSizes(1)
+%             weights = reshape(W{1}(:,i), 16, 16);
+%             a = 0;
+%             b = 1;
+%             weights = weights - mean(weights(:));
+%             weights = ((b - a) * (weights - min(weights(:)))) / (max(weights(:)) - min(weights(:)));
+%             figure;
+%             imshow(weights);
+%         end
+%     end
+
+    display_network(W{1});
+end
+
+if strcmp(data_file, 'mnist')
+    display_network(W{1});
+end
