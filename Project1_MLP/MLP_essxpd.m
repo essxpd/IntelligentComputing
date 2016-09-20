@@ -1,9 +1,8 @@
 clear all
 close all
 
-
 % Load the data in
-data_file = 'mnist';
+data_file = 'threeclouds.data';
 % data_file = 'wine.data';
 
 if ~strcmp(data_file, 'mnist')
@@ -79,10 +78,10 @@ end
 
 % Network Config
 eta = .1;
-maxEpoch = 10;
+maxEpoch = 100;
 actFunc = @sigmoid;
 actFuncGrad = @sigmoid_grad;
-layerSizes = [14*14, numClasses]; % Output layer is one hot 
+layerSizes = [((ceil(sqrt(numDimensions))/2)+1).^2, numClasses]; % Output layer is one hot 
 
 numHiddenLayers = size(layerSizes, 2) - 1;
 outputLayer = size(layerSizes, 2);
@@ -108,7 +107,7 @@ outputLayer = size(layerSizes, 2);
 s = sprintf('\nEpoch\t|\tValidation accuracy\n---------------------------------');
 disp(s);
 
-for e = 1:20
+for e = 1:maxEpoch
     for k = 1:size(trainingData,1)
         [delta_W, delta_b] = backPropagation(actFunc, actFuncGrad, W, b, trainingData(k,:), trainingExpectedOutput(k,:));
 
